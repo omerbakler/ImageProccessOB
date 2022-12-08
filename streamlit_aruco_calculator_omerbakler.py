@@ -211,7 +211,7 @@ if app_mode == 'Calculate Area':
     attempts_value_slider = st.sidebar.slider('Number of attempts', value = 7, min_value = 1, max_value = 10) # slider example
     st.sidebar.markdown('---') # adds a devider (a line)
     
-    index_value = st.sidebar.slider('Index of object', value = 2, min_value = 1, max_value = k) # slider example
+    index_value = st.sidebar.slider('Index of object', value = 2, min_value = 1, max_value = 3) # slider example
     st.sidebar.markdown('---') # adds a devider (a line)
 
     # read an image from the user
