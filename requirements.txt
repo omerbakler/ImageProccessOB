@@ -4,3 +4,4 @@ opencv-contrib-python-headless
 numpy
 imutils
 pandas
+matplotlib
