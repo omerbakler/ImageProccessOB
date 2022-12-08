@@ -54,7 +54,7 @@ def aruco_calc(img,index,k,attempts):
   # count how many pixels are in the foreground and bg
   area_px_count = np.sum(np.array(masked_image_grayscale) >0)
 
-  area_in_cm = area_px_count*pixel_cm_ratio
+  area_in_cm = area_px_count * pixel_cm_ratio
 
   return area_in_cm
 
@@ -229,7 +229,7 @@ if app_mode == 'Calculate Area':
     st.sidebar.image(image)
     
     # call the function to calculate the area
-    index_area = aruco_calc(image, index = index_value, k = k_value, attempts = attempts_value_slider)
+    index_area = aruco_calc(image, index = index_value-1, k = k_value, attempts = attempts_value_slider)
 
     st.markdown('''
           ##  The area of your object is: 
