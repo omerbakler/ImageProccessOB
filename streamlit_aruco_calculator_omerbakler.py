@@ -11,7 +11,7 @@ import cv2
 import imutils
 import streamlit as st
 
-def aruco_calc(img,index,k,attemps):
+def aruco_calc(img,index,k,attempts):
   # Load Aruco detector
   parameters = cv2.aruco.DetectorParameters_create()
   aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_50)
