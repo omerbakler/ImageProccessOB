@@ -9,6 +9,15 @@ Original file is located at
 
 # function to calculate area with aruco of segmented image
 
+# import libs
+from skimage import measure, io, img_as_ubyte, morphology, util, color
+import matplotlib.pyplot as plt
+from skimage.color import label2rgb, rgb2gray
+import numpy as np
+import pandas as pd
+import cv2
+import imutils
+
 def aruco_calc(img,index,k,attemps):
   # Load Aruco detector
   parameters = cv2.aruco.DetectorParameters_create()
