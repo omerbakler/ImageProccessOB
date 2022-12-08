@@ -27,10 +27,6 @@ def aruco_calc(img,index,k,attempts):
   
   # segment the image using k-means
   segmented_kmeans, labels, centers = segment_image_kmeans(image, k, attempts)
-
-  for i,center in enumerate(centers):
-    if np.all(center == center[index]):
-      center_index = i
   
   # copy source img
   img = image.copy()
@@ -39,7 +35,7 @@ def aruco_calc(img,index,k,attempts):
   # convert to the shape of a vector of pixel values (like suits for kmeans)
   masked_image = masked_image.reshape((-1, 3))
   
-  index_to_remove = center_index
+  index_to_remove = index
   
   # color (i.e cluster) to exclude
   list_of_cluster_numbers_to_exclude = list(range(k)) # create a list that has the number from 0 to k-1
@@ -232,6 +228,6 @@ if app_mode == 'Calculate Area':
     index_area = aruco_calc(image, index = index_value-1, k = k_value, attempts = attempts_value_slider)
 
     st.markdown('''
-          ##  The area of your object is: 
+          ##  The area of your object in cm\N{SUPERSCRIPT TWO}: 
                 ''')
     st.text(index_area)
