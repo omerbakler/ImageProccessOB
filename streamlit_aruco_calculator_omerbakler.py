@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import cv2
 import imutils
+import streamlit as st
 
 def aruco_calc(img,index,k,attemps):
   # Load Aruco detector
