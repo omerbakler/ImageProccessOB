@@ -229,7 +229,7 @@ if app_mode == 'Calculate Area':
     st.sidebar.image(image)
     
     # call the function to calculate the area
-    index_area = aruco_calc(image, index_value, k=k_value, attempts=attempts_value_slider)
+    index_area = aruco_calc(image, index = index_value, k = k_value, attempts = attempts_value_slider)
 
     st.markdown('''
           ##  The area of your object is: 
