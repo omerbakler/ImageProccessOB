@@ -194,15 +194,15 @@ app_mode = st.sidebar.selectbox('Navigate',
 # About page
 if app_mode == 'About App':
     st.markdown('Welcome!\n
-                  In this app you can calculate the horizontal area of your BSF larvas and (hopefully) get an estimation of their weight. \n
-                  In order to insure the accuracy of the results, make sure you upload an image that meets the following requirements (example below): \n
-                  1. The larvas are placed in a Petri dish on a blank white page with Aruco marker 5X5-50. \n
-                  2. The larvas are seperated from one another and the Petri dish does not cover the Aruco marker. \n
-                  3. If necessary, use a flash to light the image and make larvas different from the background. \n
-                  4. The image is in jpg/jpeg format. \n
-                  \n
-                  Please notice: Due to time limitations, the app is yet to be in its final version. For now, it works well with prepupals and pupas. \n
-                  In the future, we hope to make every it relevant to any larva stage.')
+    In this app you can calculate the horizontal area of your BSF larvas and (hopefully) get an estimation of their weight. \n
+    In order to insure the accuracy of the results, make sure you upload an image that meets the following requirements (example below): \n
+    1. The larvas are placed in a Petri dish on a blank white page with Aruco marker 5X5-50. \n
+    2. The larvas are seperated from one another and the Petri dish does not cover the Aruco marker. \n
+    3. If necessary, use a flash to light the image and make larvas different from the background. \n
+    4. The image is in jpg/jpeg format. \n
+    \n
+    Please notice: Due to time limitations, the app is yet to be in its final version. For now, it works well with prepupals and pupas. \n
+    In the future, we hope to make every it relevant to any larva stage.')
     
     
     # side bar
