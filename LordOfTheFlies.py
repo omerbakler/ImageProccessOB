@@ -193,7 +193,7 @@ app_mode = st.sidebar.selectbox('Navigate',
 
 # About page
 if app_mode == 'About App':
-    st.markdown('Welcome! \n
+    st.markdown('Welcome!\n
                   In this app you can calculate the horizontal area of your BSF larvas and (hopefully) get an estimation of their weight. \n
                   In order to insure the accuracy of the results, make sure you upload an image that meets the following requirements (example below): \n
                   1. The larvas are placed in a Petri dish on a blank white page with Aruco marker 5X5-50. \n
