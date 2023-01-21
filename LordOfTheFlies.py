@@ -88,7 +88,7 @@ DEMO_IMAGE = 'demo.jpg' # a demo image for the segmentation page, if none is upl
 
 # main page
 st.set_page_config(page_title='AruCo area calculator', layout = 'wide', initial_sidebar_state = 'auto')
-st.title('Object area calculation using Aruco, by Omer Bakler')
+st.title('Lord Of The Flies')
 
 # side bar
 st.markdown(
@@ -110,8 +110,7 @@ st.markdown(
 
 )
 
-st.sidebar.title('Segmentation Sidebar')
-st.sidebar.subheader('Site Pages')
+st.sidebar.title('Options')
 
 # using st.cache so streamlit runs the following function only once, and stores in chache (until changed)
 @st.cache()
@@ -139,11 +138,20 @@ def image_resize(image, width=None, height=None, inter = cv2.INTER_AREA):
 
 # add dropdown to select pages on left
 app_mode = st.sidebar.selectbox('Navigate',
-                                  ['About App', 'Calculate Area'])
+                                  ['About App', 'Calculate'])
 
 # About page
 if app_mode == 'About App':
-    st.markdown('In this app we will calculate object area in an image using K-Means segmentation and AruCo marker.')
+    st.markdown('Welcome! \n
+                  In this app you can calculate the horizontal area of your BSF larvas and (hopefully) get an estimation of their weight. \n
+                  In order to insure the accuracy of the results, make sure you upload an image that meets the following requirements (example below): \n
+                  1. The larvas are placed in a Petri dish on a blank white page with Aruco marker 5X5-50. \n
+                  2. The larvas are seperated from one another and the Petri dish does not cover the Aruco marker. \n
+                  3. If necessary, use a flash to light the image and make larvas different from the background. \n
+                  4. The image is in jpg/jpeg format. \n
+                  \n
+                  Please notice: Due to time limitations, the app is yet to be in its final version. For now, it works well with prepupals and pupas. \n
+                  In the future, we hope to make every it relevant to any larva stage.')
     
     
     # side bar
@@ -167,16 +175,8 @@ if app_mode == 'About App':
     )
 
 
-    st.markdown('''
-                ## About the app \n
-                Hey, this web app is a great one to calculate area of your wanted object. \n
-                Enjoy!
-
-
-                ''')
-
 # Run image
-if app_mode == 'Calculate Area':
+if app_mode == 'Calculate':
     
     st.sidebar.markdown('---') # adds a devider (a line)
     
@@ -201,14 +201,15 @@ if app_mode == 'Calculate Area':
     )
 
     # choosing a k value (either with +- or with a slider)
-    k_value = st.sidebar.number_input('Insert K value (number of clusters):', value=4, min_value = 1) # asks for input from the user
+    k_value = st.sidebar.selectbox('Larva stage',
+                                  ['5 days old', '7 days old', '13 days old', 'Pre-pupal', 'Pupa'])
     st.sidebar.markdown('---') # adds a devider (a line)
     
-    attempts_value_slider = st.sidebar.slider('Number of attempts', value = 7, min_value = 1, max_value = 10) # slider example
+    attempts_value_slider = st.sidebar.slider('Number of attempts for k-means segmentation', value = 7, min_value = 1, max_value = 10) # slider example
     st.sidebar.markdown('---') # adds a devider (a line)
     
-    index_value = st.sidebar.slider('Index of object', value = 2, min_value = 1, max_value = 3) # slider example
-    st.sidebar.markdown('---') # adds a devider (a line)
+    # index_value = st.sidebar.slider('Index of object', value = 2, min_value = 1, max_value = 3) # slider example
+    # st.sidebar.markdown('---') # adds a devider (a line)
 
     # read an image from the user
     img_file_buffer = st.sidebar.file_uploader("Upload an image", type=['jpg', 'jpeg', 'png'])
