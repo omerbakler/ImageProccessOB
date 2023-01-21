@@ -31,7 +31,7 @@ def getPxCmRatio(image):
   # Load Aruco detector
   parameters = cv2.aruco.DetectorParameters()
   aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_50)
-  detector = cv2.aruco.ArucoDetector(dictionary, parameters)
+  # detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
   # Setting the corners list of the aruco marker to global to use it later
   global corners
