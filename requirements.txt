@@ -5,7 +5,7 @@ numpy
 imutils
 pandas
 rembg
-matplotlib.pyplot
+matplotlib
 pandas
 glob
 plotly
