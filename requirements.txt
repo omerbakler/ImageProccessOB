@@ -8,4 +8,4 @@ rembg
 matplotlib
 pandas
 plotly
-PIL
+Pillow
