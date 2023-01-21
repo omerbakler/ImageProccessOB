@@ -3,13 +3,28 @@
 # function to calculate area with aruco of segmented image
 
 # import libs
-from skimage import measure, io, img_as_ubyte, morphology, util, color
-from skimage.color import label2rgb, rgb2gray
+import skimage.io as io
+import skimage
+import cv2
+
+import math
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import cv2
+import glob
+from skimage import filters
+from rembg import remove
+from skimage import img_as_ubyte, data, filters, measure, morphology
+
+from skimage.draw import ellipse
+from skimage.measure import label, regionprops, regionprops_table
+from skimage.transform import rotate
+import plotly
+import plotly.express as px
+import plotly.graph_objects as go
+from PIL import Image
 import imutils
-import streamlit as st
+from skimage.color import label2rgb, rgb2gray
 
 def getPxCmRatio(image):
   
@@ -81,86 +96,44 @@ def segment_image_kmeans(img, k=3, attempts=10):
   
   # flatten the labels array
   labels = labels.flatten()
-  
+    
   # convert all pixels to the color of the centroids
   segmented_image = centers[labels.flatten()]
     
   # reshape back to the original image dimension
   segmented_image = segmented_image.reshape(img.shape)
     
-  return segmented_image, labels, centers
+   return segmented_image, labels, centers
 
-def aruco_calc(img,index,k,attempts):
-  # Load Aruco detector
-  parameters = cv2.aruco.DetectorParameters_create()
-  aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_50)
-
-  # Get Aruco marker
-  corners, _, _ = cv2.aruco.detectMarkers(image, aruco_dict, parameters=parameters)
-
-  # Aruco Area
-  aruco_area = cv2.contourArea(corners[0])
-
-  # Pixel to cm ratio
-  pixel_cm_ratio = 5*5 / aruco_area # since the AruCo is 5*5 cm, so we devide 25 cm*cm by the number of pixels
+def calc_area(image):
   
-  # segment the image using k-means
-  segmented_kmeans, labels, centers = segment_image_kmeans(image, k, attempts)
+  #segment the image using k-means:
+  segmented_image, labels, centers = segment_image_kmeans(image, k=3, attempts=10)
+  #claculate AruCo ratio:
+  pixel_cm_ratio = getPxCmRatio(image) 
+  #remove AruCo an background:
+  img_na = removeAruco(segmented_image)
+  #converting to grayscale:
+  img = skimage.color.rgb2gray(img_na[:,:,:3])
+
+  # Binary image, post-process the binary mask and compute labels
+  smooth = skimage.filters.gaussian(img, sigma=8, mode='constant', cval=0.0) 
+  threshold = filters.threshold_otsu(smooth)
+  mask = smooth < threshold
+  mask = morphology.remove_small_objects(mask, min_size = 3000)
+  mask = morphology.remove_small_holes(mask, 20)
+  labels = measure.label(mask)
   
-  # copy source img
-  img = image.copy()
-  masked_image = img.copy()
+  #Calculate area for each label:
+  props = measure.regionprops(labels, img)
+  properties = ['area']
+  total_area = 0
+
+  for index in range(1, labels.max()):
+    current_area = (getattr(props[index], 'area')*pixel_cm_ratio) #get area in cm^2 of each label
+    total_area += current_area #add the area to the total area
   
-  # convert to the shape of a vector of pixel values (like suits for kmeans)
-  masked_image = masked_image.reshape((-1, 3))
-  
-  index_to_remove = index
-  
-  # color (i.e cluster) to exclude
-  list_of_cluster_numbers_to_exclude = list(range(k)) # create a list that has the number from 0 to k-1
-  list_of_cluster_numbers_to_exclude.remove(index_to_remove) # remove the cluster of leaf that we want to keep, and not black out
-  for cluster in list_of_cluster_numbers_to_exclude:
-    masked_image[labels == cluster] = [0, 0, 0] # black all clusters except cluster leaf_center_index
-  
-  # convert back to original shape
-  masked_image = masked_image.reshape(img.shape)
-  masked_image_grayscale = rgb2gray(masked_image)
-  
-  # count how many pixels are in the foreground and bg
-  area_px_count = np.sum(np.array(masked_image_grayscale) >0)
-
-  area_in_cm = area_px_count * pixel_cm_ratio
-
-  return area_in_cm
-
-# function to segment using k-means
-
-def segment_image_kmeans(img, k=3, attempts=10): 
-
-    # Convert MxNx3 image into Kx3 where K=MxN
-    pixel_values  = img.reshape((-1,3))  #-1 reshape means, in this case MxN
-
-    #We convert the unit8 values to float as it is a requirement of the k-means method of OpenCV
-    pixel_values = np.float32(pixel_values)
-
-    # define stopping criteria
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
-    
-    _, labels, (centers) = cv2.kmeans(pixel_values, k, None, criteria, attempts, cv2.KMEANS_RANDOM_CENTERS)
-    
-    # convert back to 8 bit values
-    centers = np.uint8(centers)
-
-    # flatten the labels array
-    labels = labels.flatten()
-    
-    # convert all pixels to the color of the centroids
-    segmented_image = centers[labels.flatten()]
-    
-    # reshape back to the original image dimension
-    segmented_image = segmented_image.reshape(img.shape)
-    
-    return segmented_image, labels, centers
+  return (total_area/(labels.max()-1))
 
 # vars
 DEMO_IMAGE = 'demo.jpg' # a demo image for the segmentation page, if none is uploaded
@@ -280,7 +253,7 @@ if app_mode == 'Calculate':
     )
 
     # choosing a k value (either with +- or with a slider)
-    k_value = st.sidebar.selectbox('Larva stage',
+    stage = st.sidebar.selectbox('Larva stage',
                                   ['5 days old', '7 days old', '13 days old', 'Pre-pupal', 'Pupa'])
     st.sidebar.markdown('---') # adds a devider (a line)
     
@@ -289,7 +262,7 @@ if app_mode == 'Calculate':
     
     # index_value = st.sidebar.slider('Index of object', value = 2, min_value = 1, max_value = 3) # slider example
     # st.sidebar.markdown('---') # adds a devider (a line)
-
+    
     # read an image from the user
     img_file_buffer = st.sidebar.file_uploader("Upload an image", type=['jpg', 'jpeg', 'png'])
 
@@ -304,10 +277,65 @@ if app_mode == 'Calculate':
     st.sidebar.text('Original Image')
     st.sidebar.image(image)
     
-    # call the function to calculate the area
-    index_area = aruco_calc(image, index = index_value-1, k = k_value, attempts = attempts_value_slider)
+    #segment the image using k-means:
+    segmented_image, labels, centers = segment_image_kmeans(image, k=3, attempts=10)
+    
+    #claculate AruCo ratio:
+    pixel_cm_ratio = getPxCmRatio(image) 
+    
+    #remove AruCo an background:
+    img_na = removeAruco(segmented_image)
+    
+    #converting to grayscale:
+    img = skimage.color.rgb2gray(img_na[:,:,:3])
+    
+    # Binary image, post-process the binary mask and compute labels
+    smooth = skimage.filters.gaussian(img, sigma=8, mode='constant', cval=0.0) 
+    threshold = filters.threshold_otsu(smooth)
+    mask = smooth < threshold
+    mask = morphology.remove_small_objects(mask, min_size = 3000)
+    mask = morphology.remove_small_holes(mask, 100)
+    labels = measure.label(mask)
+    
+    fig = px.imshow(img, binary_string=True)
+    fig.update_traces(hoverinfo='skip') # hover is only for label info
+    
+    #Calculate area for each label:
+    props = measure.regionprops(labels, img)
+    properties = ['area']
+    total_area = 0
+    
+    # For each label, add a filled scatter trace for its contour,
+    # and display the properties of the label in the hover of this trace.
+    for index in range(1, labels.max()):
+      label_i = props[index].label
+      contour = measure.find_contours(labels == label_i, 0.5)[0]
+      y, x = contour.T
+      hoverinfo = ''
+      current_area = (getattr(props[index], 'area')*pixel_cm_ratio) #get area in cm^2 of each label
+      total_area += current_area #add the area to the total area
+    
+      for prop_name in properties:
+        hoverinfo += f'<b>{prop_name}: {(getattr(props[index], prop_name)*pixel_cm_ratio):.2f}</b><br>'
+      fig.add_trace(go.Scatter(
+        x=x, y=y, name=label_i,
+        mode='lines', fill='toself', showlegend=False,
+        hovertemplate=hoverinfo, hoveron='points+fills'))
+    average_area = total_area/(labels.max()-1) #calculate the average area of the larva by divide the total area by the number of labels
+    plotly.io.show(fig)
+    # print('Average area of Larva:{a} cm^2'.format(a = average_area))
 
     st.markdown('''
-          ##  The area of your object in cm\N{SUPERSCRIPT TWO}: 
+          ##  The average area of the larvas in cm\N{SUPERSCRIPT TWO}: 
                 ''')
-    st.text(index_area)
+    st.text(average_area)
+    
+    if stage == 'Pre-pupal':
+      average_weight = average_area*0.06637753102
+    elif stage == 'Pupa':
+      average_weight = average_area*0.06628851182
+    
+    st.markdown('''
+          ##  The average weight of the karvas in cm\N{SUPERSCRIPT THREE}: 
+                ''')
+    st.text(average_weight)
