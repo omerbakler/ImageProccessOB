@@ -11,7 +11,6 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import glob
 from skimage import filters
 from rembg import remove
 from skimage import img_as_ubyte, data, filters, measure, morphology
