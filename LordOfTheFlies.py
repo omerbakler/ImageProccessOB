@@ -102,7 +102,7 @@ def segment_image_kmeans(img, k=3, attempts=10):
   # reshape back to the original image dimension
   segmented_image = segmented_image.reshape(img.shape)
     
-   return segmented_image, labels, centers
+  return segmented_image, labels, centers
 
 def calc_area(image):
   
