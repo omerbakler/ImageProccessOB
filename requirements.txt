@@ -5,7 +5,6 @@ numpy
 imutils
 pandas
 -U scikit-image
--U pip
 rembg
 matplotlib.pyplot
 pandas
