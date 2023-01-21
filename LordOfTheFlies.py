@@ -11,6 +11,85 @@ import cv2
 import imutils
 import streamlit as st
 
+def getPxCmRatio(image):
+  
+  # Load Aruco detector
+  parameters = cv2.aruco.DetectorParameters_create()
+  aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_50)
+
+  # Setting the corners list of the aruco marker to global to use it later
+  global corners
+
+  # Get Aruco marker
+  corners, _, _ = cv2.aruco.detectMarkers(image, aruco_dict, parameters=parameters)
+
+  # Aruco Area
+  aruco_area = cv2.contourArea (corners[0])
+
+  # Get Pixel to cm ratio
+  pixel_cm_ratio = 5*5 / aruco_area # since the AruCo is 5*5 cm, so we devide 25 cm*cm by the number of pixels
+  
+  return pixel_cm_ratio
+
+def removeAruco(image):
+  no_bg = remove(image)
+  # Finding the values of the aruco corners(because it's not an exact square) and asigning
+  if corners[0][0][3][1] < corners[0][0][0][1]:
+    Up = int(corners[0][0][3][1])
+  else:
+    Up = int(corners[0][0][0][1])
+  
+  if corners[0][0][1][1] > corners[0][0][2][1]:
+    Down = int(corners[0][0][1][1])
+  else:
+    Down = int(corners[0][0][2][1])
+
+  if corners[0][0][2][0] < corners[0][0][3][0]:
+    Left = int(corners[0][0][2][0])
+  else:
+    Left = int(corners[0][0][3][0])
+
+  if corners[0][0][0][0] > corners[0][0][1][0]:
+    Right = int(corners[0][0][0][0])
+  else:
+    Right = int(corners[0][0][1][0])
+
+  # Turning the pixels values of the square to white 
+  image_nA = no_bg.copy()
+  image_nA[Up : Down , Left : Right] = no_bg[0,0]
+
+  # Creating an image out of the previously modified array
+  img_nA = Image.fromarray(image_nA)
+
+  return image_nA
+
+def segment_image_kmeans(img, k=3, attempts=10): 
+  
+  # Convert MxNx3 image into Kx3 where K=MxN
+  pixel_values  = img.reshape((-1,3))  #-1 reshape means, in this case MxN
+  
+  #We convert the unit8 values to float as it is a requirement of the k-means method of OpenCV
+  pixel_values = np.float32(pixel_values)
+  
+  # define stopping criteria
+  criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
+    
+  _, labels, (centers) = cv2.kmeans(pixel_values, k, None, criteria, attempts, cv2.KMEANS_RANDOM_CENTERS)
+    
+  # convert back to 8 bit values
+  centers = np.uint8(centers)
+  
+  # flatten the labels array
+  labels = labels.flatten()
+  
+  # convert all pixels to the color of the centroids
+  segmented_image = centers[labels.flatten()]
+    
+  # reshape back to the original image dimension
+  segmented_image = segmented_image.reshape(img.shape)
+    
+  return segmented_image, labels, centers
+
 def aruco_calc(img,index,k,attempts):
   # Load Aruco detector
   parameters = cv2.aruco.DetectorParameters_create()
